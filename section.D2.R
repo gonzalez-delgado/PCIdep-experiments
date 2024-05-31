@@ -1,7 +1,7 @@
 # Noise effect when simulating independent AR(1) samples
-# Simulation described in Section D.2
+# Simulation described in Section D.3. Produces Figures 11 and 12.
 
-#### Figure 10
+#### Figure 11
 
 # Simulate AutoRegressive model
 for(Nsim in c(1e3, 5e3, 1e4, 5e4)){
@@ -15,14 +15,14 @@ for(Nsim in c(1e3, 5e3, 1e4, 5e4)){
 
 }
 
-# Produce panels in Figure 10 
+# Produce panels in Figure 11 
 plot(ACF_1000, main = '(a) M = 1000')
 plot(ACF_5000, main = '(b) M = 5000')
 plot(ACF_10000, main = '(c) M = 10000')
 plot(ACF_50000, main = '(d) M = 50000')
 
 
-#### Figure 11
+#### Figure 12
 
 # Install PCIdep
 #devtools::install_github("https://github.com/gonzalez-delgado/PCIdep")
@@ -80,7 +80,7 @@ parallel::stopCluster(cl)
 data_fig11 <- as.data.frame(do.call('rbind', global_null_fig11)); colnames(data_fig11) <- c('pv_av','Nsim')
 title <-  expression(paste('U = AR(1), ',Sigma ,' = Diagonal'))
 
-# Produce Figure 11
+# Produce Figure 12
 
 theme_set(theme_bw())
 ggplot(data_fig11, aes(x = pv_av, col = factor(Nsim)))+

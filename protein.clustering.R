@@ -1,5 +1,5 @@
 ### Application to clustering of protein structures
-# This code reproduces the data analysis of Section 6 and Fig. 7, 8.
+# This code reproduces the data analysis of Section 6 and Fig. 8, 9.
 
 ## Install PCIdep
 #devtools::install_github("https://github.com/gonzalez-delgado/PCIdep")
@@ -17,7 +17,7 @@ data_Y <- read.csv(paste0("~/path_to_data/",'histatin_net_2',"_dist_r3_matrix.tx
 
 # Perform pairwise comparisons after HAC clustering with average linkage set to choose 6 clusters
 
-# We use the first pair to produce the dendogram in Fig. 8 and get the clustering partition
+# We use the first pair to produce the dendogram in Fig. 9 and get the clustering partition
 test_12 <- test.clusters.hc(X = as.matrix(data_X), Y = as.matrix(data_Y), NC = 6, clusters = c(1,2), plot = TRUE, linkage = "average")
 
 # Then, we compute the p-values for the remaining pairs
@@ -36,7 +36,7 @@ results <- cbind(t(combn(6,2)), p.adjust(pvalues, method = 'holm'))
 colnames(results) <- c('Cluster 1', 'Cluster 2', 'corrected p-value')
 results # Show results of Table 1
 
-# Distance matrices in Fig. 7
+# Distance matrices in Fig. 8
 
 L <- 24 # Sequence length
 dist_mat <- data.frame('pos1' = NA, 'pos2' = NA, 'dis' = NA, 'clus' = NA) # Distance data
@@ -58,7 +58,7 @@ variable_labeller <- function(variable,value){
   return(paste0('Cluster ',value, ' (',props[value],'% occupancy)'))
 }
 
-# Produce Figure 7
+# Produce Figure 8
 
 library(viridis)
 ggplot(dist_mat, aes(x = pos1, y = pos2, fill = dis))+

@@ -1,6 +1,6 @@
 ### Asymptotic null distribution of p-values under the over-estimation of Sigma
 ### when the dependence structure between observations is ignored
-# This code reproduces the numerical analysis of Section 5.4.2 and generates Figures 6, 14.
+# This code reproduces the numerical analysis of Section 5.4.2 and generates Figures 7, 15.
 
 # Install PCIdep
 #devtools::install_github("https://github.com/gonzalez-delgado/PCIdep")
@@ -120,8 +120,8 @@ for(linkage in c('av','cen','sin','com','km')){
     
 }
 
-# Figure 6 is
+# Figure 7 is
 p_av
 
-# Panels in Figure 14 are
+# Panels in Figure 15 are
 pv_cen; pv_sin; pv_com; pv_km

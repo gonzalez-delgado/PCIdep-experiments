@@ -1,5 +1,5 @@
 ### Asymptotic null distribution of p-values under the over-estimation of Sigma
-# This code reproduces the numerical analysis of Section 5.2 and Figures 3, 12.
+# This code reproduces the numerical analysis of Section 5.2 and Figures 4, 13.
 
 # Install PCIdep
 #devtools::install_github("https://github.com/gonzalez-delgado/PCIdep")
@@ -136,10 +136,10 @@ for(dd in c('D1','D2','D3')){
 
 # Produce figures
 
-# HAC average linkage (Fig. 3)
+# HAC average linkage (Fig. 4)
 ggpubr::ggarrange(p_D1_av, p_D2_av, p_D3_av, labels = c('(a)', '(b)',' (c)'), ncol = 3, common.legend = TRUE, legend = 'bottom')
 
-# Rest of clustering algorithms (Fig. 12)
+# Rest of clustering algorithms (Fig. 13)
 ggpubr::ggarrange(p_D1_cen, p_D2_cen, p_D3_cen, labels = c('(a)', '(b)',' (c)'), ncol = 3, common.legend = TRUE, legend = 'bottom')
 ggpubr::ggarrange(p_D1_sin, p_D2_sin, p_D3_sin, labels = c('(d)', '(e)',' (f)'), ncol = 3, common.legend = TRUE, legend = 'bottom')
 ggpubr::ggarrange(p_D1_com, p_D2_com, p_D3_com, labels = c('(g)', '(h)',' (i)'), ncol = 3, common.legend = TRUE, legend = 'bottom')

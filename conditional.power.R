@@ -1,5 +1,5 @@
 ### Conditional power and loss of power when over-estimating one scale matrix
-# This code reproduces the numerical analysis of Section 5.3 and generates Figure 4.
+# This code reproduces the numerical analysis of Section 5.3 and generates Figure 5.
 
 # Install PCIdep
 #devtools::install_github("https://github.com/gonzalez-delgado/PCIdep")
@@ -226,8 +226,8 @@ for(dd in c('D1','D2','D3')){
     
 }
 
-# Panels (a-c) in Fig. 4
+# Panels (a-c) in Fig. 5
 ggpubr::ggarrange(p_D1, p_D2, p_D3, labels = c('(a)', '(b)',' (c)'), ncol = 3, common.legend = TRUE, legend = 'bottom')
 
-# Panels (d-f) in Fig. 4
+# Panels (d-f) in Fig. 5
 ggpubr::ggarrange(p_loss_D1, p_loss_D2, p_loss_D3, labels = c('(d)', '(e)',' (f)'), ncol = 3, common.legend = TRUE, legend = 'bottom')
