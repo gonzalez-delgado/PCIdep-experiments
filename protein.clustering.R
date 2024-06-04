@@ -18,7 +18,7 @@ data_Y <- read.csv(paste0("~/path_to_data/",'histatin_net_2',"_dist_r3_matrix.tx
 # Perform pairwise comparisons after HAC clustering with average linkage set to choose 6 clusters
 
 # We use the first pair to produce the dendogram in Fig. 9 and get the clustering partition
-test_12 <- test.clusters.hc(X = as.matrix(data_X), Y = as.matrix(data_Y), NC = 6, clusters = c(1,2), plot = TRUE, linkage = "average")
+test_12 <- PCIdep::test.clusters.hc(X = as.matrix(data_X), Y = as.matrix(data_Y), NC = 6, clusters = c(1,2), plot = TRUE, linkage = "average")
 
 # Then, we compute the p-values for the remaining pairs
 pairs <- t(combn(6,2))[-1,]
@@ -26,7 +26,7 @@ pvalues <- c(test_12$pvalue)
 
 for(k in 1:nrow(pairs)){
   
-  test_k <- test.clusters(X = as.matrix(data_X), Y = as.matrix(data_Y), NC = 6, clusters = pairs[k,], plot = F, linkage = "average")
+  test_k <- PCIdep::test.clusters.hc(X = as.matrix(data_X), Y = as.matrix(data_Y), NC = 6, clusters = pairs[k,], plot = F, linkage = "average")
   cat(paste0("p-value for clusters ", paste(pairs[k, ], collapse = '-'), ' = ', test_k$pvalue,'\n'))
   pvalues <- c(pvalues, test_k$pvalue)
   
