@@ -12,8 +12,8 @@ library(ggplot2)
 
 # Load protein data
 path_to_data <- "/path_to_data/" # Path to files histatin_net_1_dist_r3_matrix.txt and histatin_net_2_dist_r3_matrix.txt
-data_X <- read.csv(paste0("~/path_to_data/",'histatin_net_1',"_dist_r3_matrix.txt"), sep="")
-data_Y <- read.csv(paste0("~/path_to_data/",'histatin_net_2',"_dist_r3_matrix.txt"), sep="")
+data_X <- read.csv(paste0(path_to_data,'histatin_net_1',"_dist_r3_matrix.txt"), sep="")
+data_Y <- read.csv(paste0(path_to_data,'histatin_net_2',"_dist_r3_matrix.txt"), sep="")
 
 # Perform pairwise comparisons after HAC clustering with average linkage set to choose 6 clusters
 
