@@ -1,5 +1,5 @@
 ### Conditional power and loss of power when over-estimating one scale matrix
-# This code reproduces the numerical analysis of Section 5.3 and generates Figure 5.
+# This code reproduces the numerical analysis of Section 4.3.
 
 # Install PCIdep
 #devtools::install_github("https://github.com/gonzalez-delgado/PCIdep")
@@ -35,9 +35,10 @@ d <- c(); for(i in 1:p){d <- c(d, 1+1/i)}
 Sigma2 <- stats::toeplitz(d) # Covariance between columns
 
 # Dependence setting D3
-U3 <- zapsmall(stats::toeplitz((0.1)^(0:(n-1)))) # Covariance between rows
+a <- 2; b <- 0.2
+U3 <- b + (a - b)*matrixNormal::I(n) # Covariance between rows
 Uinv3 <- solve(U3)
-Sigma3 <- round(diag(d), 2) # Covariance between columns
+Sigma3 <- diag(d) # Covariance between columns
 
 # Run parallel computation
 Nthreads <- 5
@@ -53,12 +54,13 @@ for(delta in deltaseq){
   M[(floor(n/3)+1):floor(2*n/3),p] <- sqrt(3)*delta/2
   M[(floor(2*n/3)+1):n,1] <- delta/2
   
-  for(j in 1:3){
+  for(j in c(3)){
     
     #### Oracle (Sigma known) ####
     
     sim_oracle <- foreach::foreach(i = 1:Nsim, .combine = 'rbind', .errorhandling = 'remove') %dopar% {
       
+      set.seed(NULL)
       # Simulate matrix normal samples
       X <- matrixNormal::rmatnorm(s = 1, M, eval(parse(text = paste0('U', j))), eval(parse(text = paste0('Sigma', j))))
       
@@ -94,14 +96,15 @@ for(delta in deltaseq){
       
       c(pv_av, effect_av, pv_cen, effect_cen, pv_sin, effect_sin, pv_com, effect_com, pv_km, effect_km, delta)}
     
-    if(j == 1){power_D1[[delta]] <- sim_oracle}
-    if(j == 2){power_D2[[delta]] <- sim_oracle}
-    if(j == 3){power_D3[[delta]] <- sim_oracle}
+    if(j == 1){power_D1[[which(deltaseq == delta)]] <- sim_oracle}
+    if(j == 2){power_D2[[which(deltaseq == delta)]] <- sim_oracle}
+    if(j == 3){power_D3[[which(deltaseq == delta)]] <- sim_oracle}
     
     #### Over-estimation of Sigma ####
     
     sim_est <- foreach::foreach(i = 1:Nsim, .combine = 'rbind', .errorhandling = 'remove') %dopar% {
       
+      set.seed(NULL)
       # Simulate matrix normal samples
       X <- matrixNormal::rmatnorm(s = 1, M, eval(parse(text = paste0('U', j))), eval(parse(text = paste0('Sigma', j))))
       Y <- matrixNormal::rmatnorm(s = 1, M, eval(parse(text = paste0('U', j))), eval(parse(text = paste0('Sigma', j))))
@@ -143,9 +146,9 @@ for(delta in deltaseq){
       
       c(pv_av, effect_av, pv_cen, effect_cen, pv_sin, effect_sin, pv_com, effect_com, pv_km, effect_km, delta)}
     
-    if(j == 1){power_est_D1[[delta]] <- sim_est}
-    if(j == 2){power_est_D2[[delta]] <- sim_est}
-    if(j == 3){power_est_D3[[delta]] <- sim_est}
+    if(j == 1){power_est_D1[[which(deltaseq == delta)]] <- sim_est}
+    if(j == 2){power_est_D2[[which(deltaseq == delta)]] <- sim_est}
+    if(j == 3){power_est_D3[[which(deltaseq == delta)]] <- sim_est}
     
   }
 }
@@ -164,7 +167,7 @@ data_est_D3 <- as.data.frame(do.call('rbind', power_est_D3)); colnames(data_est_
 # Compute conditional power
 linklist <- powerlist <- deltalist <- estlist <- c() 
 
-for(dd in c('D1', 'D2', 'D3')){
+for(dd in c('D3', 'D3', 'D3')){
   for(delta in deltaseq){
     for(l in c('av','cen','sin','com','km')){
       
@@ -195,39 +198,49 @@ power.data <- power.data[!is.na(power.data$power),]
 
 title_D1 <-  expression(paste('U = ',I[n],' , ', Sigma,' = AR(1)'))
 title_D2 <-  expression(paste('U = b + (a - b) ',I[n],' , ',Sigma,' = Toeplitz'))
-title_D3 <-  expression(paste('U = AR(1), ',Sigma ,' = Toeplitz'))
+title_D3 <-  expression(paste('U = b + (a - b) ',I[n],' , ',Sigma,' = Diagonal'))
 
-for(dd in c('D1','D2','D3')){
+dd <- 'D3' # Set dependence setting
+
+# Conditional power: oracle (Fig. 5(a-c))
+
+power.data$linkage <- factor(power.data$linkage, levels = c('HAC average linkage',
+                                                            'HAC centroid linkage',
+                                                            'HAC complete linkage',
+                                                            'HAC single linkage',
+                                                            'k-means'))
   
-    # Conditional power: oracle (Fig. 4(a-c))
-  
-    theme_set(theme_bw())
-    assign(paste0('p_',dd), ggplot(power.data[which(power.data$estSigma == 'Known'),], aes(x = delta, y = power, col = linkage))+
+theme_set(theme_bw())
+ggplot(power.data[which(power.data$estSigma == 'Known'),], aes(x = delta, y = power, col = linkage))+
              geom_line()+
              geom_point()+
              ggtitle(eval(parse(text = paste0('title_', dd))))+
-             labs(x = latex2exp::TeX('Distance between true clusters ($\\delta$)'), y = 'Conditional power', col = 'Clustering')+
-             theme(legend.position = 'bottom'))
+             labs(x = latex2exp::TeX('Distance between true clusters ($\\delta$)'), y = 'Conditional power (oracle)', col = 'Clustering')+
+             theme(legend.position = 'bottom')
+
+# Conditional power: Sigma over-estimation (Fig. 5(d-f))
+
+theme_set(theme_bw())
+ggplot(power.data[which(power.data$estSigma == 'Over-estimate'),], aes(x = delta, y = power, col = linkage))+
+  geom_line()+
+  geom_point()+
+  ggtitle(eval(parse(text = paste0('title_', dd))))+
+  labs(x = latex2exp::TeX('Distance between true clusters ($\\delta$)'), y = latex2exp::TeX('Conditional power ($\\Sigma$ estimated)'), col = 'Clustering')+
+  theme(legend.position = 'bottom')
     
-    # Power loss in estimation (Fig. 4(d-f))
+# Power loss in estimation (Fig. 5(g-i))
     
-    # Compute power loss
-    merge.data <- dplyr::left_join(power.data[which(power.data$estSigma == 'Known'),], power.data[which(power.data$estSigma == 'Over-estimate'), ], by = c("delta", "linkage"))
-    merge.data$loss <- abs(merge.data$power.x - merge.data$power.y)
-    loss.data <- merge.data[,c('delta', 'linkage', 'loss')]
+# Compute power loss
+merge.data <- dplyr::left_join(power.data[which(power.data$estSigma == 'Known'),], power.data[which(power.data$estSigma == 'Over-estimate'), ], by = c("delta", "linkage"))
+merge.data$loss <- abs(merge.data$power.x - merge.data$power.y)
+loss.data <- merge.data[,c('delta', 'linkage', 'loss')]
     
-    theme_set(theme_bw())
-    assign(paste0('p_loss_',dd), ggplot(loss.data, aes(x = delta, y = loss, col = linkage))+
+theme_set(theme_bw())
+ggplot(loss.data, aes(x = delta, y = loss, col = linkage))+
              geom_line()+
              geom_point()+
              ggtitle(eval(parse(text = paste0('title_', dd))))+
              labs(x = latex2exp::TeX('Distance between true clusters ($\\delta$)'), y = 'Power loss in estimation', col = 'Clustering')+
-             theme(legend.position = 'bottom'))
+             theme(legend.position = 'bottom')
     
-}
 
-# Panels (a-c) in Fig. 5
-ggpubr::ggarrange(p_D1, p_D2, p_D3, labels = c('(a)', '(b)',' (c)'), ncol = 3, common.legend = TRUE, legend = 'bottom')
-
-# Panels (d-f) in Fig. 5
-ggpubr::ggarrange(p_loss_D1, p_loss_D2, p_loss_D3, labels = c('(d)', '(e)',' (f)'), ncol = 3, common.legend = TRUE, legend = 'bottom')

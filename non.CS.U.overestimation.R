@@ -1,5 +1,7 @@
-### Asymptotic null distribution of p-values under the over-estimation of Sigma
-# This code reproduces the numerical analysis of Section 4.2.
+### Asymptotic null distribution of p-values under the over-estimation of Sigma, 
+### for U \notin CS(n) matrices satisfying Remarks 3.1, 3.2 and 3.3.
+
+# This code reproduces the numerical analysis of Section 4.4.1 for unknown Sigma.
 
 # Install PCIdep
 #devtools::install_github("https://github.com/gonzalez-delgado/PCIdep")
@@ -8,16 +10,17 @@
 library(PCIdep)
 library(matrixNormal)
 library(stats)
+library(dae)
 library(foreach)
 library(doParallel)
 library(ggplot2)
 
 Nsim <- 5000 # Number of simulations
-n <- 100 # Number of observations
+n <- 50 # Number of observations
 p <- 5 # Number of variables
-deltaseq <- c(6,8) # Separation between clusters
+deltaseq <- c(4,6,8) # Separation between clusters for the over-estimation of Sigma
 
-global_null_D1 <- global_null_D2 <- global_null_D3 <- list()
+est_null_D4 <- est_null_D5 <- est_null_D6 <- list()
 
 for(delta in deltaseq){
   
@@ -26,38 +29,37 @@ for(delta in deltaseq){
   M[1:floor(n/2),] <- matrix(delta*(1/(1:p)), nrow = floor(n/2), ncol = p, byrow = TRUE)
   M[(floor(n/2)+1):n,] <- matrix(-delta*(1/(1:p)), nrow = n - floor(n/2), ncol = p, byrow = TRUE)
   
-  # Dependence setting D1
-  U1 <- matrixNormal::I(n) # Covariance between rows
-  Uinv1 <- solve(U1)
-  Sigma1 <- stats::toeplitz(seq(1, 0.5, length = p)) # Covariance between columns
+  # Covariance between columns
+  d <- c();  for(i in 1:p){d <- c(d, 1+1/i)}
+  Sigma <- diag(d)
   
-  # Dependence setting D2
-  a <- 1; b <- 0.5
-  U2 <- b + (a - b)*matrixNormal::I(n) # Covariance between rows
-  Uinv2 <- solve(U2)
-  d <- c(); for(i in 1:p){d <- c(d, 1+1/i)} 
-  Sigma2 <- stats::toeplitz(d) # Covariance between columns
+  # Dependence setting D4
+  dU <- c();  for(i in 1:n){dU <- c(dU, 1+1/i)}
+  U4 <- diag(dU) # Covariance between rows
+  Uinv4 <- solve(U4)
   
-  # Dependence setting D3
-  a <- 2; b <- 0.2
-  U3 <- b + (a - b)*matrixNormal::I(n) # Covariance between rows
-  Uinv3 <- solve(U3)
-  Sigma3 <- diag(d) # Covariance between columns
+  # Dependence setting D5
+  U5 <- dae::mat.ar1(ARparameters = c(0.1), order = n) # Covariance between rows
+  Uinv5 <- solve(U5)
+  
+  # Dependence setting D6
+  U6 <- dae::mat.ar2(ARparameters = c(0.4, 0.1), order = n)  # Covariance between rows
+  Uinv6 <- solve(U6)
   
   # Run parallel computation
   Nthreads <- 5
   cl <- parallel::makeCluster(Nthreads)
-  parallel::clusterExport(cl = cl, varlist = c('M', 'U1', 'U2', 'U3', 'Uinv1', 'Uinv2', 'Uinv3', 'Sigma1', 'Sigma2', 'Sigma3'), envir = environment())
+  parallel::clusterExport(cl = cl, varlist = c('M', 'U4', 'U5', 'U6', 'Uinv4', 'Uinv5', 'Uinv6', 'Sigma'), envir = environment())
   doParallel::registerDoParallel(cl)
   
-  for(j in 1:3){
+  for(j in c(4,5,6)){
     
     sim <- foreach::foreach(i = 1:Nsim, .combine = 'rbind', .errorhandling = 'remove') %dopar% {
       
       set.seed(NULL)
       # Simulate matrix normal samples
-      X <- matrixNormal::rmatnorm(s = 1, M, eval(parse(text = paste0('U', j))), eval(parse(text = paste0('Sigma', j))))
-      Y <- matrixNormal::rmatnorm(s = 1, M, eval(parse(text = paste0('U', j))), eval(parse(text = paste0('Sigma', j))))
+      X <- matrixNormal::rmatnorm(s = 1, M, eval(parse(text = paste0('U', j))), Sigma)
+      Y <- matrixNormal::rmatnorm(s = 1, M, eval(parse(text = paste0('U', j))), Sigma)
       
       # HAC average linkage
       cl <- sample(1:3, 2)
@@ -96,9 +98,10 @@ for(delta in deltaseq){
       
       c(pv_av, effect_av, pv_cen, effect_cen, pv_sin, effect_sin, pv_com, effect_com, pv_km, effect_km, delta)}
     
-    if(j == 1){global_null_D1[[delta]] <- sim}
-    if(j == 2){global_null_D2[[delta]] <- sim}
-    if(j == 3){global_null_D3[[delta]] <- sim}
+    est_null_tree[[delta]] <- sim
+    if(j == 4){est_null_D4[[which(deltaseq == delta)]] <- sim}
+    if(j == 5){est_null_D5[[which(deltaseq == delta)]] <- sim}
+    if(j == 6){est_null_D6[[which(deltaseq == delta)]] <- sim}
     
   }
   parallel::stopCluster(cl)
@@ -107,32 +110,40 @@ for(delta in deltaseq){
 
 # Format and plot results
 
-data_D1 <- as.data.frame(do.call('rbind', global_null_D1)); colnames(data_D1) <- c('pv_av','effect_av','pv_cen','effect_cen','pv_sin','effect_sin','pv_com','effect_com','pv_km','effect_km','delta')
-data_D2 <- as.data.frame(do.call('rbind', global_null_D2)); colnames(data_D2) <- c('pv_av','effect_av','pv_cen','effect_cen','pv_sin','effect_sin','pv_com','effect_com','pv_km','effect_km','delta')
-data_D3 <- as.data.frame(do.call('rbind', global_null_D3)); colnames(data_D3) <- c('pv_av','effect_av','pv_cen','effect_cen','pv_sin','effect_sin','pv_com','effect_com','pv_km','effect_km','delta')
+data_D4 <- as.data.frame(do.call('rbind', est_null_D4)); colnames(data_D4) <- c('pv_av','effect_av','pv_cen','effect_cen','pv_sin','effect_sin','pv_com','effect_com','pv_km','effect_km','delta')
+data_D5 <- as.data.frame(do.call('rbind', est_null_D5)); colnames(data_D5) <- c('pv_av','effect_av','pv_cen','effect_cen','pv_sin','effect_sin','pv_com','effect_com','pv_km','effect_km','delta')
+data_D6 <- as.data.frame(do.call('rbind', est_null_D6)); colnames(data_D6) <- c('pv_av','effect_av','pv_cen','effect_cen','pv_sin','effect_sin','pv_com','effect_com','pv_km','effect_km','delta')
 
-title_D1 <-  expression(paste('U = ',I[n],' , ', Sigma,' = AR(1)'))
-title_D2 <-  expression(paste('U = b + (a - b) ',I[n],' , ',Sigma,' = Toeplitz'))
-title_D3 <- expression(paste('U = b + (a - b) ',I[n],' , ',Sigma,' = Diagonal'))
+title_D4 <-  'U = Diagonal'
+title_D5 <-  expression('U = AR(1)')
+title_D6 <-  expression('U = AR(2)')
 sublist <- list()
 sublist['av'] <- 'HAC average linkage'; sublist['cen'] <- 'HAC centroid linkage'; sublist['sin'] <- 'HAC single linkage'; sublist['com'] <- 'HAC complete linkage'; sublist['km'] <- 'k-means'
 
 # Produce plots
 
-dd <- 'D3' # Set dependence setting
-linkage <- 'com' # Set clustering algorithm: 'av','cen','sin','com' or 'km'.
+dd <-'D6' # Dependence setting
+linkage <- 'av' # Clustering algorithm: one in 'av','cen','sin','com' or 'km'
 
 # Keep samples where H0 holds
 data_plot <- eval(parse(text = paste0('data_', dd)))
 data_plot <- data_plot[which(data_plot[,paste0('effect_',linkage)] == 0),]
-    
+
 theme_set(theme_bw())
 ggplot(data_plot, aes(x = eval(parse(text = paste0('pv_', linkage))), col = factor(delta)))+
-             stat_ecdf()+
-             ggtitle(eval(parse(text = paste0('title_', dd))))+
-             labs(x = 'p-value', y = 'ECDF', subtitle = sublist[linkage], col = expression(delta))+
-             geom_abline(col = 'darkblue', alpha = 0.4, linetype = 'dashed')+
-             theme(legend.position = 'bottom')+
-             scale_color_manual(values = c("6" ="steelblue",
-                                    "8"="darkgreen"), drop = FALSE)
-    
+  stat_ecdf()+
+  ggtitle(eval(parse(text = paste0('title_', dd))))+
+  labs(x = 'p-value', y = 'ECDF', subtitle = sublist[linkage], col = expression(delta))+
+  geom_abline(col = 'darkblue', alpha = 0.4, linetype = 'dashed')+
+  theme(legend.position = 'bottom')
+
+# Produce figures
+
+# HAC average linkage (Fig. 6)
+ggpubr::ggarrange(p_D4_av, p_D5_av, p_D6_av, labels = c('(a)', '(b)',' (c)'), ncol = 3, common.legend = TRUE, legend = 'bottom')
+
+# Rest of clustering algorithms (Fig. 14)
+ggpubr::ggarrange(p_D4_cen, p_D5_cen, p_D6_cen, labels = c('(a)', '(b)',' (c)'), ncol = 3, common.legend = TRUE, legend = 'bottom')
+ggpubr::ggarrange(p_D4_sin, p_D5_sin, p_D6_sin, labels = c('(d)', '(e)',' (f)'), ncol = 3, common.legend = TRUE, legend = 'bottom')
+ggpubr::ggarrange(p_D4_com, p_D5_com, p_D6_com, labels = c('(g)', '(h)',' (i)'), ncol = 3, common.legend = TRUE, legend = 'bottom')
+ggpubr::ggarrange(p_D4_km, p_D5_km, p_D6_km, labels = c('(j)', '(k)',' (l)'), ncol = 3, common.legend = TRUE, legend = 'bottom')

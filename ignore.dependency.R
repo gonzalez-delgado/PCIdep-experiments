@@ -1,6 +1,6 @@
 ### Asymptotic null distribution of p-values under the over-estimation of Sigma
 ### when the dependence structure between observations is ignored
-# This code reproduces the numerical analysis of Section 5.4.2 and generates Figures 7, 15.
+# This code reproduces the numerical analysis of Section 4.4.3.
 
 # Install PCIdep
 #devtools::install_github("https://github.com/gonzalez-delgado/PCIdep")
@@ -105,23 +105,16 @@ delta_names <- as_labeller(c(
   "6" = "\u03B4 = 6",
   "8" = "\u03B4 = 8"))
 
-for(linkage in c('av','cen','sin','com','km')){
+linkage <- 'av' # One in 'av','cen','sin','com','km'
   
-  lk <- sublist[[linkage]]  
-  theme_set(theme_bw())
-  assign(paste0('p_', linkage), ggplot(data_ignoredep, aes(x = eval(parse(text = paste0('pv_', linkage))), col = factor(rho)))+
+lk <- sublist[[linkage]]  
+theme_set(theme_bw())
+ggplot(data_ignoredep, aes(x = eval(parse(text = paste0('pv_', linkage))), col = factor(rho)))+
     stat_ecdf()+
     ggtitle(title)+
     labs(x = 'p-value', y = 'ECDF', subtitle = paste('HAC', lk ,'linkage, assuming U = I') , col = expression(rho))+
     geom_abline(col = 'darkblue', alpha = 0.4, linetype = 'dashed')+
     theme(legend.position = 'bottom', text = element_text(size = 14))+
     scale_color_manual(values = group.colors)+
-    facet_grid(~delta, labeller = delta_names))
+    facet_grid(~delta, labeller = delta_names)
     
-}
-
-# Figure 7 is
-p_av
-
-# Panels in Figure 15 are
-pv_cen; pv_sin; pv_com; pv_km

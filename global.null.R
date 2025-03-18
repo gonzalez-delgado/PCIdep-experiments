@@ -1,9 +1,9 @@
 ### Distribution of p-values under the global null hypothesis
-# This code reproduces the numerical analysis of Section 5.1 and Figures 3, 10.
+# This code reproduces the numerical analysis of Section 4.1.
 
 # Install PCIdep
 #devtools::install_github("https://github.com/gonzalez-delgado/PCIdep")
-
+rm(list=ls())
 # Required libraries
 library(PCIdep)
 library(matrixNormal)
@@ -12,7 +12,7 @@ library(foreach)
 library(doParallel)
 library(ggplot2)
 
-Nsim <- 5000 # Number of simulations
+Nsim <- 2000 # Number of simulations
 n <- 100 # Number of observations
 pseq <- c(5,20,50) # Number of variables
 
@@ -34,8 +34,9 @@ d <- c(); for(i in 1:p){d <- c(d, 1+1/i)}
 Sigma2 <- stats::toeplitz(d) # Covariance between columns
 
 # Dependence setting D3
-U3 <- zapsmall(stats::toeplitz((0.1)^(0:(n-1)))) # Covariance between rows
-Sigma3 <- round(diag(d), 2) # Covariance between columns
+a <- 2; b <- 0.2
+U3 <- b + (a - b)*matrixNormal::I(n) # Covariance between rows
+Sigma3 <- diag(d) # Covariance between columns
 
 # Run parallel computation
 Nthreads <- 5
@@ -44,30 +45,33 @@ parallel::clusterExport(cl = cl, varlist = c('M', 'U1', 'U2', 'U3', 'Sigma1', 'S
 doParallel::registerDoParallel(cl)
 
 for(j in 1:3){
+
+  sim <- foreach::foreach(i = 1:Nsim, .combine = 'rbind', .errorhandling = 'stop') %dopar% {
   
-  sim <- foreach::foreach(i = 1:Nsim, .combine = 'rbind', .errorhandling = 'remove') %dopar% {
-  
+  M <- matrixNormal::J(n = n, m = p) - matrixNormal::J(n = n, m = p) # Mean matrix
+    
+  set.seed(NULL)  
   # Simulate matrix normal sample
-  X <- matrixNormal::rmatnorm(s = 1, M, eval(parse(text = paste0('U', j))), eval(parse(text = paste0('Sigma', j))))
+  X <- matrixNormal::rmatnorm(s = 1, M, V = matrixNormal::I(p), U = eval(parse(text = paste0('U', j))))
   
   # HAC average linkage
-  test_av <- PCIdep::test.clusters.hc(X, eval(parse(text = paste0('U', j))), eval(parse(text = paste0('Sigma', j))), NC = 3, clusters = sample(1:3, 2), linkage = 'average')
+  test_av <- PCIdep::test.clusters.hc(X, U = eval(parse(text = paste0('U', j))), Sigma =  matrixNormal::I(p) , NC = 3, clusters = sample(1:3, 2), linkage = 'average')
   pv_av <- test_av$pvalue
   
   # HAC centroid linkage
-  test_cen <- PCIdep::test.clusters.hc(X, eval(parse(text = paste0('U', j))), eval(parse(text = paste0('Sigma', j))), NC = 3, clusters = sample(1:3, 2), linkage = 'centroid')
+  test_cen <- PCIdep::test.clusters.hc(X, U = eval(parse(text = paste0('U', j))), Sigma =  matrixNormal::I(p), NC = 3, clusters = sample(1:3, 2), linkage = 'centroid')
   pv_cen <- test_cen$pvalue
    
   # HAC single linkage
-  test_sin <- PCIdep::test.clusters.hc(X, eval(parse(text = paste0('U', j))), eval(parse(text = paste0('Sigma', j))), NC = 3, clusters = sample(1:3, 2), linkage = 'single')
+  test_sin <- PCIdep::test.clusters.hc(X, U = eval(parse(text = paste0('U', j))), Sigma =  matrixNormal::I(p), NC = 3, clusters = sample(1:3, 2), linkage = 'single')
   pv_sin <- test_sin$pvalue
   
   # HAC complete linkage
-  test_com <- PCIdep::test.clusters.hc(X, eval(parse(text = paste0('U', j))), eval(parse(text = paste0('Sigma', j))), NC = 3, clusters = sample(1:3, 2), linkage = 'complete')
+  test_com <- PCIdep::test.clusters.hc(X, U = eval(parse(text = paste0('U', j))), Sigma =  matrixNormal::I(p), NC = 3, clusters = sample(1:3, 2), linkage = 'complete')
   pv_com <- test_com$pvalue
   
   # k-means
-  test_km <- PCIdep::test.clusters.km(X, eval(parse(text = paste0('U', j))), eval(parse(text = paste0('Sigma', j))), NC = 3, clusters = sample(1:3, 2))
+  test_km <- PCIdep::test.clusters.km(X, U = eval(parse(text = paste0('U', j))), Sigma = matrixNormal::I(p), NC = 3, clusters = sample(1:3, 2))
   pv_km <- test_km$pvalue
   
   c(pv_av, pv_cen, pv_sin, pv_com, pv_km, p)}
@@ -89,32 +93,19 @@ data_D3 <- as.data.frame(do.call('rbind', global_null_D3)); colnames(data_D3) <-
 
 title_D1 <-  expression(paste('U = ',I[n],' , ', Sigma,' = AR(1)'))
 title_D2 <-  expression(paste('U = b + (a - b) ',I[n],' , ',Sigma,' = Toeplitz'))
-title_D3 <-  expression(paste('U = AR(1), ',Sigma ,' = Toeplitz'))
+title_D3 <- expression(paste('U = b + (a - b) ',I[n],' , ',Sigma,' = Diagonal'))
 sublist <- list()
 sublist['av'] <- 'HAC average linkage'; sublist['cen'] <- 'HAC centroid linkage'; sublist['sin'] <- 'HAC single linkage'; sublist['com'] <- 'HAC complete linkage'; sublist['km'] <- 'k-means'
 
 # Produce plots
 
-for(dd in c('D1','D2','D3')){
-  for(linkage in c('av','cen','sin','com','km')){
-    
-    theme_set(theme_bw())
-    assign(paste0('p_',dd,'_',linkage), ggplot(eval(parse(text = paste0('data_', dd))), aes(x = eval(parse(text = paste0('pv_', linkage))), col = factor(p)))+
+dd <- 'D1' # Set dependence setting
+linkage <- 'av' # Set clustering algorithm: 'av','cen','sin','com' or 'km'
+
+theme_set(theme_bw())
+ggplot(eval(parse(text = paste0('data_', dd))), aes(x = eval(parse(text = paste0('pv_', linkage))), col = factor(p)))+
       stat_ecdf()+
       ggtitle(eval(parse(text = paste0('title_', dd))))+
       labs(x = 'p-value', y = 'ECDF', subtitle = sublist[linkage], col = 'p')+
       geom_abline(col = 'darkblue', alpha = 0.4, linetype = 'dashed')+
-      theme(legend.position = 'bottom'))
-
-}}
-
-# Produce figures
-
-# HAC average linkage (Fig. 3)
-ggpubr::ggarrange(p_D1_av, p_D2_av, p_D3_av, labels = c('(a)', '(b)',' (c)'), ncol = 3, common.legend = TRUE, legend = 'bottom')
-
-# Rest of clustering algorithms (Fig. 10)
-ggpubr::ggarrange(p_D1_cen, p_D2_cen, p_D3_cen, labels = c('(a)', '(b)',' (c)'), ncol = 3, common.legend = TRUE, legend = 'bottom')
-ggpubr::ggarrange(p_D1_sin, p_D2_sin, p_D3_sin, labels = c('(d)', '(e)',' (f)'), ncol = 3, common.legend = TRUE, legend = 'bottom')
-ggpubr::ggarrange(p_D1_com, p_D2_com, p_D3_com, labels = c('(g)', '(h)',' (i)'), ncol = 3, common.legend = TRUE, legend = 'bottom')
-ggpubr::ggarrange(p_D1_km, p_D2_km, p_D3_km, labels = c('(j)', '(k)',' (l)'), ncol = 3, common.legend = TRUE, legend = 'bottom')
+      theme(legend.position = 'bottom')
