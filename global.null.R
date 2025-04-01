@@ -55,23 +55,23 @@ for(j in 1:3){
   X <- matrixNormal::rmatnorm(s = 1, M, V = matrixNormal::I(p), U = eval(parse(text = paste0('U', j))))
   
   # HAC average linkage
-  test_av <- PCIdep::test.clusters.hc(X, U = eval(parse(text = paste0('U', j))), Sigma =  matrixNormal::I(p) , NC = 3, clusters = sample(1:3, 2), linkage = 'average')
+  test_av <- PCIdep::test.clusters.hc(X, U = eval(parse(text = paste0('U', j))), Sigma =eval(parse(text = paste0('Sigma', j))), NC = 3, clusters = sample(1:3, 2), linkage = 'average')
   pv_av <- test_av$pvalue
   
   # HAC centroid linkage
-  test_cen <- PCIdep::test.clusters.hc(X, U = eval(parse(text = paste0('U', j))), Sigma =  matrixNormal::I(p), NC = 3, clusters = sample(1:3, 2), linkage = 'centroid')
+  test_cen <- PCIdep::test.clusters.hc(X, U = eval(parse(text = paste0('U', j))), Sigma = eval(parse(text = paste0('Sigma', j))), NC = 3, clusters = sample(1:3, 2), linkage = 'centroid')
   pv_cen <- test_cen$pvalue
    
   # HAC single linkage
-  test_sin <- PCIdep::test.clusters.hc(X, U = eval(parse(text = paste0('U', j))), Sigma =  matrixNormal::I(p), NC = 3, clusters = sample(1:3, 2), linkage = 'single')
+  test_sin <- PCIdep::test.clusters.hc(X, U = eval(parse(text = paste0('U', j))), Sigma = eval(parse(text = paste0('Sigma', j))), NC = 3, clusters = sample(1:3, 2), linkage = 'single')
   pv_sin <- test_sin$pvalue
   
   # HAC complete linkage
-  test_com <- PCIdep::test.clusters.hc(X, U = eval(parse(text = paste0('U', j))), Sigma =  matrixNormal::I(p), NC = 3, clusters = sample(1:3, 2), linkage = 'complete')
+  test_com <- PCIdep::test.clusters.hc(X, U = eval(parse(text = paste0('U', j))), Sigma = eval(parse(text = paste0('Sigma', j))), NC = 3, clusters = sample(1:3, 2), linkage = 'complete')
   pv_com <- test_com$pvalue
   
   # k-means
-  test_km <- PCIdep::test.clusters.km(X, U = eval(parse(text = paste0('U', j))), Sigma = matrixNormal::I(p), NC = 3, clusters = sample(1:3, 2))
+  test_km <- PCIdep::test.clusters.km(X, U = eval(parse(text = paste0('U', j))), Sigma =eval(parse(text = paste0('Sigma', j))), NC = 3, clusters = sample(1:3, 2))
   pv_km <- test_km$pvalue
   
   c(pv_av, pv_cen, pv_sin, pv_com, pv_km, p)}
