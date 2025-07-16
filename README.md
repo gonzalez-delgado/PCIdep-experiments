@@ -10,3 +10,4 @@ This code reproduces the numerical analyses and real data experiment in "Post-cl
 * The file [non.admissible.U.overestimation.R](https://github.com/gonzalez-delgado/PCIdep-experiments/blob/main/non.admissible.U.overestimation.R) reproduces the analyses in Section 4.4.2.
 * The file [ignore.dependency.R](https://github.com/gonzalez-delgado/PCIdep-experiments/blob/main/ignore.dependency.R) reproduces the analyses in Section 4.4.3.
 * The file [protein.clustering.R](https://github.com/gonzalez-delgado/PCIdep-experiments/blob/main/protein.clustering.R) reproduces experiment on real data of protein structures, presented in Section 6. The dataset can be downloaded [here](https://zenodo.org/doi/10.5281/zenodo.10021201). 
+* The file [pgamma.sim.R](https://github.com/gonzalez-delgado/PCIdep-experiments/blob/main/pgamma.sim.R) reproduces the analysis of Section D.3.
