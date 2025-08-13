@@ -26,9 +26,8 @@ whitening_mat <- whitening::whiteningMatrix(cov(data_Y), method='Cholesky')
 data_X <- tcrossprod(as.matrix(data_X), whitening_mat)
 
 
-# We use the first pair to produce the dendogram in Fig. 9 and get the clustering partition
-#test_12 <- PCIdep::test.clusters.hc(X = as.matrix(data_X), Y = as.matrix(data_Y), NC = Nclusters, clusters = c(1,2), plot = TRUE, linkage = "average")
-test_12 <- PCIdep::test.clusters.hc(X = as.matrix(data_X), Y = NULL, Sigma = matrixNormal::I(ncol(data_X)), NC = Nclusters, clusters = c(1,2), plot = TRUE, linkage = "average")
+# We use the first pair to get the clustering partition
+test_12 <- PCIdep::test.clusters.hc(X = as.matrix(data_X), Y = NULL, Sigma = matrixNormal::I(ncol(data_X)), NC = Nclusters, clusters = c(1,2), linkage = "average")
 
 table(test_12$hcl)
 
