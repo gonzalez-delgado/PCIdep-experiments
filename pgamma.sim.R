@@ -237,9 +237,9 @@ for(j in c(4,5,6)){
     
     c(pv_com)}
    
-  if(j == 4){global_null_D4[[which(pseq == p)]] <- sim}
-  if(j == 5){global_null_D5[[which(pseq == p)]] <- sim}
-  if(j == 6){global_null_D6[[which(pseq == p)]] <- sim}
+  if(j == 4){global_null_D4[[1]] <- sim}
+  if(j == 5){global_null_D5[[1]] <- sim}
+  if(j == 6){global_null_D6[[1]] <- sim}
     
   }
 parallel::stopCluster(CCl)
