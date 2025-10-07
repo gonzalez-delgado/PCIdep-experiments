@@ -51,7 +51,7 @@ results # Show results of Table 1
 
 # Distance matrices in Fig. 8
 
-L <- 12 # Sequence length
+L <- 24 # Sequence length
 dist_mat <- data.frame('pos1' = NA, 'pos2' = NA, 'dis' = NA, 'clus' = NA) # Distance data
 
 for(clus in 1:Nclusters){
