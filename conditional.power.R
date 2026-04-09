@@ -1,5 +1,6 @@
-### Conditional power and loss of power when over-estimating one scale matrix
-# This code reproduces the numerical analysis of Section 4.3.
+# Conditional power and loss of power when over-estimating one scale matrix
+# This code reproduces the numerical analysis of the first part of 
+# Appendix C (Figure C.1)
 
 # Install PCIdep
 #devtools::install_github("https://github.com/gonzalez-delgado/PCIdep")
@@ -202,7 +203,7 @@ title_D3 <-  expression(paste('U = b + (a - b) ',I[n],' , ',Sigma,' = Diagonal')
 
 dd <- 'D3' # Set dependence setting
 
-# Conditional power: oracle (Fig. 5(a-c))
+# Conditional power: oracle
 
 power.data$linkage <- factor(power.data$linkage, levels = c('HAC average linkage',
                                                             'HAC centroid linkage',
@@ -218,7 +219,7 @@ ggplot(power.data[which(power.data$estSigma == 'Known'),], aes(x = delta, y = po
              labs(x = latex2exp::TeX('Distance between true clusters ($\\delta$)'), y = 'Conditional power (oracle)', col = 'Clustering')+
              theme(legend.position = 'bottom')
 
-# Conditional power: Sigma over-estimation (Fig. 5(d-f))
+# Conditional power: Sigma over-estimation
 
 theme_set(theme_bw())
 ggplot(power.data[which(power.data$estSigma == 'Over-estimate'),], aes(x = delta, y = power, col = linkage))+
@@ -228,7 +229,7 @@ ggplot(power.data[which(power.data$estSigma == 'Over-estimate'),], aes(x = delta
   labs(x = latex2exp::TeX('Distance between true clusters ($\\delta$)'), y = latex2exp::TeX('Conditional power ($\\Sigma$ estimated)'), col = 'Clustering')+
   theme(legend.position = 'bottom')
     
-# Power loss in estimation (Fig. 5(g-i))
+# Power loss in estimation
     
 # Compute power loss
 merge.data <- dplyr::left_join(power.data[which(power.data$estSigma == 'Known'),], power.data[which(power.data$estSigma == 'Over-estimate'), ], by = c("delta", "linkage"))

@@ -1,7 +1,7 @@
 ### Asymptotic null distribution of p-values under the over-estimation of Sigma, 
-### for U matrices different from those of Remarks 3.1, 3.2 and 3.3.
+### for U matrices different from those of Remarks A.1, A.2 and A.3.
 
-# This code reproduces the numerical analysis of Section 4.4.2.
+# This code reproduces the numerical analysis of Section D.2.
 
 # Install PCIdep
 #devtools::install_github("https://github.com/gonzalez-delgado/PCIdep")
@@ -139,10 +139,10 @@ ggplot(data_plot, aes(x = eval(parse(text = paste0('pv_', linkage))), col = fact
     
 # Produce figures
 
-# HAC average linkage (Fig. 6)
+# HAC average linkage
 ggpubr::ggarrange(p_D7_av, p_D8_av, p_D9_av, labels = c('(a)', '(b)',' (c)'), ncol = 3, common.legend = TRUE, legend = 'bottom')
 
-# Rest of clustering algorithms (Fig. 14)
+# Rest of clustering algorithms
 ggpubr::ggarrange(p_D7_cen, p_D8_cen, p_D9_cen, labels = c('(a)', '(b)',' (c)'), ncol = 3, common.legend = TRUE, legend = 'bottom')
 ggpubr::ggarrange(p_D7_sin, p_D8_sin, p_D9_sin, labels = c('(d)', '(e)',' (f)'), ncol = 3, common.legend = TRUE, legend = 'bottom')
 ggpubr::ggarrange(p_D7_com, p_D8_com, p_D9_com, labels = c('(g)', '(h)',' (i)'), ncol = 3, common.legend = TRUE, legend = 'bottom')

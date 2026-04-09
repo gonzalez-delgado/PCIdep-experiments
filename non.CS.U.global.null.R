@@ -1,7 +1,8 @@
 ### Null distribution of p-values under the global null,
-### for U \notin CS(n) matrices satisfying Remarks 3.1, 3.2 and 3.3.
+### for U \notin CS(n) matrices satisfying Remarks A.1, A.2 and A.3.
 
-# This code reproduces the numerical analysis of Section 4.4.1 for known Sigma.
+# This code reproduces the numerical analysis of Section D.1 for known Sigma,
+# presented in Fig. D.1.
 
 # Install PCIdep
 #devtools::install_github("https://github.com/gonzalez-delgado/PCIdep")
@@ -126,10 +127,10 @@ ggplot(data_plot, aes(x = eval(parse(text = paste0('pv_', linkage))), col = fact
 
 # Produce figures
 
-# HAC average linkage (Fig. 6)
+# HAC average linkage
 ggpubr::ggarrange(p_D4_av, p_D5_av, p_D6_av, labels = c('(a)', '(b)',' (c)'), ncol = 3, common.legend = TRUE, legend = 'bottom')
 
-# Rest of clustering algorithms (Fig. 14)
+# Rest of clustering algorithms
 ggpubr::ggarrange(p_D4_cen, p_D5_cen, p_D6_cen, labels = c('(a)', '(b)',' (c)'), ncol = 3, common.legend = TRUE, legend = 'bottom')
 ggpubr::ggarrange(p_D4_sin, p_D5_sin, p_D6_sin, labels = c('(d)', '(e)',' (f)'), ncol = 3, common.legend = TRUE, legend = 'bottom')
 ggpubr::ggarrange(p_D4_com, p_D5_com, p_D6_com, labels = c('(g)', '(h)',' (i)'), ncol = 3, common.legend = TRUE, legend = 'bottom')

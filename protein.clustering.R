@@ -1,5 +1,5 @@
 ### Application to clustering of protein structures
-# This code reproduces the data analysis of Section 6 and Fig. 8, 9.
+# This code reproduces the data analysis of Section 5.
 
 ## Install PCIdep
 #devtools::install_github("https://github.com/gonzalez-delgado/PCIdep")
@@ -71,7 +71,7 @@ variable_labeller <- function(variable,value){
   return(paste0('Cluster ',value, ' (',props[value],'% occupancy)'))
 }
 
-# Produce Figure 8
+# Produce Figure
 
 library(viridis)
 theme_set(theme_bw())

@@ -1,4 +1,4 @@
-# This code reproduces the numerical analysis of Section D.3
+# This code reproduces the numerical analysis of Section F.3
 
 # Install PCIdep
 #devtools::install_github("https://github.com/gonzalez-delgado/PCIdep")
