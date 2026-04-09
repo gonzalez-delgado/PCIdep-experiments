@@ -1,5 +1,5 @@
 # PCIdep-experiments
-This code reproduces the numerical analyses and real data experiment in "Post-clustering Inference under Dependency", González-Delgado, Cortés and Neuvial 2023, [arxiv:2310.11822](https://arxiv.org/abs/2310.11822). Analyses make use of the $\texttt{R}$ package [PCIdep](https://github.com/gonzalez-delgado/PCIdep). This repository is organized as follows:
+This code reproduces the numerical analyses and real data experiment in "Post-clustering Inference under Dependence", González-Delgado, Deronzier, Cortés and Neuvial 2023, [arxiv:2310.11822](https://arxiv.org/abs/2310.11822). Analyses make use of the $\texttt{R}$ package [PCIdep](https://github.com/gonzalez-delgado/PCIdep). This repository is organized as follows:
 
 * The file [figure.1.R](https://github.com/gonzalez-delgado/PCIdep-experiments/blob/main/figure.1.R) reproduces the first numerical analysis described in the introduction of the paper, generating Figure 1.
 * The file [figure.2.R](https://github.com/gonzalez-delgado/PCIdep-experiments/blob/main/figure.2.R) reproduces the second numerical analysis described in the introduction of the paper, generating Figure 2.
