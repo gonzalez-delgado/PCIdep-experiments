@@ -1,5 +1,5 @@
-# Noise effect when simulating independent AR(1) samples
-# Simulation described in Section D.2. Produces Figures 10 and 11.
+# This code reproduces the second numerical analysis described in the
+# introduction of the paper, generating Figure 2.
 
 # Install PCIdep
 #devtools::install_github("https://github.com/gonzalez-delgado/PCIdep")

@@ -1,7 +1,7 @@
 ### Asymptotic null distribution of p-values under the over-estimation of Sigma, 
 ### for U matrices different from those of Remarks A.1, A.2 and A.3.
 
-# This code reproduces the numerical analysis of Section D.2.
+# This code reproduces the numerical analysis of Section D.2, producing Figure D.3 and Figure G.6.
 
 # Install PCIdep
 #devtools::install_github("https://github.com/gonzalez-delgado/PCIdep")
@@ -129,6 +129,9 @@ linkage <- 'av' # Clustering algorithm: one in 'av','cen','sin','com' or 'km'
 data_plot <- eval(parse(text = paste0('data_', dd)))
 data_plot <- data_plot[which(data_plot[,paste0('effect_',linkage)] == 0),]
     
+# For Figure D.3, set linkage = 'av' and dd = 'D7', 'D8' or 'D9' to produce each panel.
+# For Figure G.6, set linkage = 'cen','sin','com' or 'km' and dd = 'D7', 'D8' or 'D9' to produce each panel.
+
 theme_set(theme_bw())
 ggplot(data_plot, aes(x = eval(parse(text = paste0('pv_', linkage))), col = factor(delta)))+
             stat_ecdf()+
@@ -137,13 +140,3 @@ ggplot(data_plot, aes(x = eval(parse(text = paste0('pv_', linkage))), col = fact
             geom_abline(col = 'darkblue', alpha = 0.4, linetype = 'dashed')+
             theme(legend.position = 'bottom')
     
-# Produce figures
-
-# HAC average linkage
-ggpubr::ggarrange(p_D7_av, p_D8_av, p_D9_av, labels = c('(a)', '(b)',' (c)'), ncol = 3, common.legend = TRUE, legend = 'bottom')
-
-# Rest of clustering algorithms
-ggpubr::ggarrange(p_D7_cen, p_D8_cen, p_D9_cen, labels = c('(a)', '(b)',' (c)'), ncol = 3, common.legend = TRUE, legend = 'bottom')
-ggpubr::ggarrange(p_D7_sin, p_D8_sin, p_D9_sin, labels = c('(d)', '(e)',' (f)'), ncol = 3, common.legend = TRUE, legend = 'bottom')
-ggpubr::ggarrange(p_D7_com, p_D8_com, p_D9_com, labels = c('(g)', '(h)',' (i)'), ncol = 3, common.legend = TRUE, legend = 'bottom')
-ggpubr::ggarrange(p_D7_km, p_D8_km, p_D9_km, labels = c('(j)', '(k)',' (l)'), ncol = 3, common.legend = TRUE, legend = 'bottom')

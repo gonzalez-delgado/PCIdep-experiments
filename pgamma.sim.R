@@ -1,4 +1,5 @@
-# This code reproduces the numerical analysis of Section F.3
+# This code reproduces the numerical analysis of Section F.3, 
+# producing Figure F.1.
 
 # Install PCIdep
 #devtools::install_github("https://github.com/gonzalez-delgado/PCIdep")
@@ -257,9 +258,9 @@ sublist <- list()
 sublist['av'] <- 'HAC average linkage'; sublist['cen'] <- 'HAC centroid linkage'; sublist['sin'] <- 'HAC single linkage'; sublist['com'] <- 'HAC complete linkage'; sublist['km'] <- 'k-means'
 
 # Produce plots
+linkage <- 'com'
 
 dd <-'D4' # Dependence setting
-linkage <- 'com'
 data_plot <- eval(parse(text = paste0('data_', dd)))
 
 theme_set(theme_bw())
@@ -271,8 +272,30 @@ p_D4_com <- ggplot(data_plot, aes(x = eval(parse(text = paste0('pv_', linkage)))
   theme(legend.position = 'none')+
   theme(text = element_text(size = 14))
 
-# Produce figures
+dd <-'D5' # Dependence setting
+data_plot <- eval(parse(text = paste0('data_', dd)))
 
-# HAC complete linkage
+theme_set(theme_bw())
+p_D5_com <- ggplot(data_plot, aes(x = eval(parse(text = paste0('pv_', linkage))), col = factor(p)))+
+  stat_ecdf(linewidth=1)+
+  ggtitle(eval(parse(text = paste0('title_', dd))))+
+  labs(x = 'p-value', y = 'ECDF', subtitle = sublist[linkage], col = expression(p))+
+  geom_abline(col = 'darkblue', alpha = 0.4, linetype = 'dashed')+
+  theme(legend.position = 'none')+
+  theme(text = element_text(size = 14))
+
+dd <-'D6' # Dependence setting
+data_plot <- eval(parse(text = paste0('data_', dd)))
+
+theme_set(theme_bw())
+p_D6_com <- ggplot(data_plot, aes(x = eval(parse(text = paste0('pv_', linkage))), col = factor(p)))+
+  stat_ecdf(linewidth=1)+
+  ggtitle(eval(parse(text = paste0('title_', dd))))+
+  labs(x = 'p-value', y = 'ECDF', subtitle = sublist[linkage], col = expression(p))+
+  geom_abline(col = 'darkblue', alpha = 0.4, linetype = 'dashed')+
+  theme(legend.position = 'none')+
+  theme(text = element_text(size = 14))
+
+# Produce Figure F.1
 ggpubr::ggarrange(p_D4_com, p_D5_com, p_D6_com, labels = c('(a)', '(b)',' (c)'), ncol = 3, legend = 'none')
 

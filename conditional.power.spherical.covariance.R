@@ -1,4 +1,3 @@
-
 # This code reproduces the numerical analysis presented in Figure C.2,
 # illustrating the loss in conditional power when over-estimating a general
 # covariance matrix Sigma when the real covariance structure is spherical.
@@ -183,6 +182,7 @@ power.data$linkage <- factor(power.data$linkage, levels = c('HAC average linkage
                                                             'HAC single linkage',
                                                             'k-means'))
 
+# Figure C.2 panel (a)
 theme_set(theme_bw())
 p1 <- ggplot(power.data[which(power.data$estSigma == 'Over-estimate (Sigma)'),], aes(x = delta, y = power, col = linkage))+
   geom_line()+
@@ -191,8 +191,7 @@ p1 <- ggplot(power.data[which(power.data$estSigma == 'Over-estimate (Sigma)'),],
   labs(x = latex2exp::TeX('Distance between true clusters ($\\delta$)'), y = latex2exp::TeX('Conditional power'), col = 'Clustering')+
   theme(legend.position = 'bottom')
 
-# Conditional power: Sigma over-estimation (Fig. 5(d-f))
-
+# Figure C.2 panel (b)
 theme_set(theme_bw())
 p2 <- ggplot(power.data[which(power.data$estSigma == 'Over-estimate (sigma)'),], aes(x = delta, y = power, col = linkage))+
   geom_line()+
@@ -201,13 +200,12 @@ p2 <- ggplot(power.data[which(power.data$estSigma == 'Over-estimate (sigma)'),],
   labs(x = latex2exp::TeX('Distance between true clusters ($\\delta$)'), y = latex2exp::TeX('Conditional power'), col = 'Clustering')+
   theme(legend.position = 'bottom')
 
-# Power loss in estimation (Fig. 5(g-i))
-
 # Compute power loss
 merge.data <- dplyr::left_join(power.data[which(power.data$estSigma == 'Over-estimate (sigma)'),], power.data[which(power.data$estSigma == 'Over-estimate (Sigma)'), ], by = c("delta", "linkage"))
 merge.data$loss <- (merge.data$power.x - merge.data$power.y)
 loss.data <- merge.data[,c('delta', 'linkage', 'loss')]
 
+# Figure C.2 panel (c)
 theme_set(theme_bw())
 p3 <- ggplot(loss.data, aes(x = delta, y = loss, col = linkage))+
   geom_line()+
@@ -216,5 +214,6 @@ p3 <- ggplot(loss.data, aes(x = delta, y = loss, col = linkage))+
   labs(x = latex2exp::TeX('Distance between true clusters ($\\delta$)'), y = 'Difference in conditional power', col = 'Clustering')+
   theme(legend.position = 'bottom')
 
+# Figure C.2 panels (a-c)
 library(ggpubr)
 ggarrange(p1,p2,p3, ncol = 3, common.legend = TRUE, legend = 'bottom', labels = c('(a)','(b)','(c)'))

@@ -1,6 +1,8 @@
 ### Asymptotic null distribution of p-values under the over-estimation of Sigma
-### when the dependence structure between observations is ignored
-# This code reproduces the numerical analysis of Section D.3.
+### when the dependence structure between observations is ignored.
+
+# This code reproduces the numerical analysis of Section D.3, 
+# producing Figure D.4 and Figure G.7.
 
 # Install PCIdep
 #devtools::install_github("https://github.com/gonzalez-delgado/PCIdep")
@@ -106,7 +108,10 @@ delta_names <- as_labeller(c(
   "8" = "\u03B4 = 8"))
 
 linkage <- 'av' # One in 'av','cen','sin','com','km'
-  
+
+# For Figure D.4, set linkage = 'av'.
+# For Figure G.7, set linkage = 'cen','sin','com' or 'km'.
+
 lk <- sublist[[linkage]]  
 theme_set(theme_bw())
 ggplot(data_ignoredep, aes(x = eval(parse(text = paste0('pv_', linkage))), col = factor(rho)))+

@@ -1,5 +1,6 @@
 ### Asymptotic null distribution of p-values under the over-estimation of Sigma
-# This code reproduces the numerical analysis of Section 4.2.
+# This code reproduces the numerical analysis of Section 4.2, producing Figure 4
+# and Figure G.3.
 
 # Install PCIdep
 #devtools::install_github("https://github.com/gonzalez-delgado/PCIdep")
@@ -121,6 +122,9 @@ sublist['av'] <- 'HAC average linkage'; sublist['cen'] <- 'HAC centroid linkage'
 
 dd <- 'D3' # Set dependence setting
 linkage <- 'com' # Set clustering algorithm: 'av','cen','sin','com' or 'km'.
+
+# Setting linkage = 'av' produces Figure 4,
+# Setting linkage = 'cen', 'sin', 'com' or 'km' produces Figure G.3.
 
 # Keep samples where H0 holds
 data_plot <- eval(parse(text = paste0('data_', dd)))

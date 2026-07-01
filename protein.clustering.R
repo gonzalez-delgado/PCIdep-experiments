@@ -1,5 +1,5 @@
 ### Application to clustering of protein structures
-# This code reproduces the data analysis of Section 5.
+# This code reproduces the data analysis of Section 5, producing Table 1, Figure 5 and Figure G.8.
 
 ## Install PCIdep
 #devtools::install_github("https://github.com/gonzalez-delgado/PCIdep")
@@ -25,11 +25,14 @@ data_X <- t(t(data_X) - colMeans(data_X))
 whitening_mat <- whitening::whiteningMatrix(cov(data_Y), method='Cholesky')
 data_X <- tcrossprod(as.matrix(data_X), whitening_mat)
 
-
 # We use the first pair to get the clustering partition
 test_12 <- PCIdep::test.clusters.hc(X = as.matrix(data_X), Y = NULL, Sigma = matrixNormal::I(ncol(data_X)), NC = Nclusters, clusters = c(1,2), linkage = "average")
 
-table(test_12$hcl)
+# Plot dendrogram with cluster rectangles: Figure G.8.
+hc_plot <- hclust(dist(data_X), method = "average")
+cluster_colors <- scales::hue_pal()(length(unique(test_12$hcl)))
+plot(hc_plot, main = "Protein clustering dendrogram", xlab = "", sub = "")
+rect.hclust(hc_plot, k = Nclusters, border = cluster_colors)
 
 # Then, we compute the p-values for the remaining pairs
 pairs <- t(combn(Nclusters,2))[-1,]
@@ -37,19 +40,18 @@ pvalues <- c(test_12$pvalue)
 
 for(k in 1:nrow(pairs)){
   
-  #test_k <- PCIdep::test.clusters.hc(X = as.matrix(data_X), Y = as.matrix(data_Y), NC = Nclusters, clusters = pairs[k,], plot = F, linkage = "average")
   test_k <- PCIdep::test.clusters.hc(X = as.matrix(data_X), Y = NULL, Sigma = matrixNormal::I(ncol(data_X)), NC = Nclusters, clusters = pairs[k,], plot = F, linkage = "average")
-  
   cat(paste0("p-value for clusters ", paste(pairs[k, ], collapse = '-'), ' = ', test_k$pvalue,'\n'))
   pvalues <- c(pvalues, test_k$pvalue)
   
 }
+
 # Holm-Bonferroni correction
 results <- cbind(t(combn(Nclusters,2)), p.adjust(pvalues, method = 'holm'))
 colnames(results) <- c('Cluster 1', 'Cluster 2', 'corrected p-value')
-results # Show results of Table 1
+results # Show results presented in Table 1
 
-# Distance matrices in Fig. 8
+# Compute distance matrices of Fig. 5
 
 L <- 24 # Sequence length
 dist_mat <- data.frame('pos1' = NA, 'pos2' = NA, 'dis' = NA, 'clus' = NA) # Distance data
@@ -71,8 +73,7 @@ variable_labeller <- function(variable,value){
   return(paste0('Cluster ',value, ' (',props[value],'% occupancy)'))
 }
 
-# Produce Figure
-
+# Produce Figure 5
 library(viridis)
 theme_set(theme_bw())
 ggplot(dist_mat, aes(x = pos1, y = pos2, fill = dis))+

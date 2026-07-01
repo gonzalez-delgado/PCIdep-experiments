@@ -1,6 +1,7 @@
 # This codes reproduces the numerical analysis of Appendix D.4,
 # illustrating the robustness of the method to deviations from
 # Gaussianity. Perturbation is based on the matrix variate t-distribution.
+# This file produces Figure D.5 and Figure G.8.
 
 # Import required libraries
 library(MixMatrix)
@@ -22,12 +23,46 @@ alpha <- 0.05
 nus <- round(exp(seq(log(10^{4}), 0, length = 20)))
 nus <- nus[which(nus < 300)]
 
+# Dependence settings
+dep_settings <- list(
+  D1 = function(n, p) list(
+    U     = matrixNormal::I(n),
+    Sigma = stats::toeplitz(seq(1, 0.5, length = p))
+  ),
+  D2 = function(n, p) {
+    a <- 1; b <- 0.5
+    list(
+      U     = b + (a - b) * matrixNormal::I(n),
+      Sigma = stats::toeplitz(1 + 1/(1:p))
+    )
+  },
+  D3 = function(n, p) {
+    a <- 2; b <- 0.2
+    list(
+      U     = b + (a - b) * matrixNormal::I(n),
+      Sigma = diag(1 + 1/(1:p))
+    )
+  }
+)
+
+# Clustering methods (fn: test function, key: cluster assignment field in result)
+clust_methods <- list(
+  average  = list(fn = function(X, U, Y, cl) test.clusters.hc(X, U, Sigma=NULL, Y=Y, NC=3, clusters=cl, linkage='average'),  key = 'hcl'),
+  centroid = list(fn = function(X, U, Y, cl) test.clusters.hc(X, U, Sigma=NULL, Y=Y, NC=3, clusters=cl, linkage='centroid'), key = 'hcl'),
+  single   = list(fn = function(X, U, Y, cl) test.clusters.hc(X, U, Sigma=NULL, Y=Y, NC=3, clusters=cl, linkage='single'),   key = 'hcl'),
+  complete = list(fn = function(X, U, Y, cl) test.clusters.hc(X, U, Sigma=NULL, Y=Y, NC=3, clusters=cl, linkage='complete'), key = 'hcl'),
+  km       = list(fn = function(X, U, Y, cl) test.clusters.km(X, U, Sigma=NULL, Y=Y, NC=3, clusters=cl),                     key = 'km')
+)
+
 # Parallel computation
 ncores <- parallel::detectCores()
 plan(multisession, workers = ncores)
 
 handlers("txtprogressbar")
-get_pval <- function(p){
+get_pval <- function(p, dep, method){
+  dep_obj <- dep_settings[[dep]](n, p)
+  U       <- dep_obj$U
+  Sigma   <- dep_obj$Sigma
   
   # Divide M into two clusters
   delta <- 6
@@ -35,24 +70,8 @@ get_pval <- function(p){
   M[1:floor(n/2),] <- matrix(delta*(1/(1:p)), nrow = floor(n/2), ncol = p, byrow = TRUE)
   M[(floor(n/2)+1):n,] <- matrix(-delta*(1/(1:p)), nrow = n - floor(n/2), ncol = p, byrow = TRUE)
   
-  # Dependence setting D1
-  U <- matrixNormal::I(n)
-  Sigma <- stats::toeplitz(seq(1, 0.5, length = p)) 
-  
-  # Dependence setting D2
-  #a <- 1; b <- 0.5
-  #U <- b + (a - b)*matrixNormal::I(n) # Covariance between rows
-  #d <- c(); for(i in 1:p){d <- c(d, 1+1/i)} 
-  #Sigma <- stats::toeplitz(d) # Covariance between columns
-  
-  # Dependence setting D3
-  #a <- 2; b <- 0.2
-  #U <- b + (a - b)*matrixNormal::I(n) # Covariance between rows
-  #d <- c(); for(i in 1:p){d <- c(d, 1+1/i)} 
-  #Sigma <- diag(d) # Covariance between columns
-  
   with_progress({
-    p_prog <- progressr::progressor(steps = length(kappas)*nsim)
+    p_prog <- progressr::progressor(steps = length(nus)*nsim)
     
     # Inner loops run sequentially
     pval_list <- map(nus, function(nu){
@@ -67,18 +86,16 @@ get_pval <- function(p){
         cl <- sample(1:3, 2) # Clusters to be compared
         
         capture.output({
-          
-          # Test for cluster differences after HAC algorithm
-          result <- try(test.clusters.hc(X, U, Sigma=NULL, Y=Y, NC = 3, clusters = cl, linkage = 'average'), silent = TRUE)
-          if(class(result) == 'try-error'){effect <- NA}else{
-            effect <- sum(abs(colMeans(M[which(result$hcl == cl[1]),, drop = FALSE]) - colMeans(M[which(result$hcl == cl[2]),, drop = FALSE])))}
-          
-          # Uncomment to run for k-means clustering
-          #result <- try(test.clusters.km(X, U, Sigma=NULL, Y=Y, NC = 3, clusters = cl), silent = TRUE)
-          #if(class(result) == 'try-error'){effect <- NA}else{
-          #  effect <- sum(abs(colMeans(M[which(result$km == cl[1]),, drop = FALSE]) - colMeans(M[which(result$km == cl[2]),, drop = FALSE])))}
-          
-        }, file=NULL)
+          cm     <- clust_methods[[method]]
+          result <- try(cm$fn(X, U, Y, cl), silent = TRUE)
+          if (class(result) == 'try-error') {
+            effect <- NA
+          } else {
+            key    <- cm$key
+            effect <- sum(abs(colMeans(M[which(result[[key]] == cl[1]),, drop = FALSE]) -
+                              colMeans(M[which(result[[key]] == cl[2]),, drop = FALSE])))
+          }
+        }, file = NULL)
         ifelse(effect == 0, result$pvalue, NA)
       })
     })
@@ -87,40 +104,49 @@ get_pval <- function(p){
   })
 }
 
-get_err <- function(p, pvals){
+get_err <- function(p, dep, method, pvals){
   type1errs <- map_dbl(pvals, function(x) mean(x < alpha, na.rm = TRUE)) 
-  tibble(p=p,
-         nu = nus,
+  tibble(p        = p,
+         dep      = dep,
+         method   = method,
+         nu       = nus,
          type1err = type1errs)
 }
 
-pvals_all <- furrr::future_map(ps, get_pval) # Compute p-values 
-df_err_all <- map2_dfr(ps, pvals_all, get_err) # Compute rejection probabilities
+combos <- expand.grid(p = ps, dep = names(dep_settings), method = names(clust_methods), stringsAsFactors = FALSE)
+pvals_all  <- furrr::future_pmap(list(p = combos$p, dep = combos$dep, method = combos$method), get_pval) # Compute p-values
+df_err_all <- purrr::pmap_dfr(list(p = combos$p, dep = combos$dep, method = combos$method, pvals = pvals_all), get_err) # Compute rejection probabilities
 
 # Produce plots
 
-link <- 'average' # Choose HAC linkage (average, centroid, single, complete) or set "km" for k-means clustering
+# Facet labels
+dep_labels <- c(
+  D1 = "U == I[n] * ',' ~ Sigma == AR(1)",
+  D2 = "U == b + (a-b) * I[n] * ',' ~ Sigma == Toeplitz",
+  D3 = "U == b + (a-b) * I[n] * ',' ~ Sigma == Diagonal"
+)
+method_labels <- c(
+  average  = 'HAC average linkage',
+  centroid = 'HAC centroid linkage',
+  single   = 'HAC single linkage',
+  complete = 'HAC complete linkage',
+  km       = 'k-means'
+)
 
-# Panel titles
-title_D1 <-  expression(paste('U = ',I[n],' , ', Sigma,' = AR(1)'))
-title_D2 <-  expression(paste('U = b + (a - b) ',I[n],' , ',Sigma,' = Toeplitz'))
-title_D3 <- expression(paste('U = b + (a - b) ',I[n],' , ',Sigma,' = Diagonal'))
+# Rows = clustering method, columns = dependence setting
+# Figure D.5 corresponds to the 'average' row; Figure G.8 to the remaining rows.
 
-# Panel subtitles
-sublist <- list()
-sublist['average'] <- 'HAC average linkage'; sublist['centroid'] <- 'HAC centroid linkage'; sublist['single'] <- 'HAC single linkage'; sublist['complete'] <- 'HAC complete linkage'; sublist['km'] <- 'k-means'
-  
-# Produce plot for the selected clustering algorithm and dependence setting
 theme_set(theme_bw())
-ggplot(df_err_all, aes(x=nu, y=type1err, colour=factor(p))) +
+ggplot(df_err_all, aes(x = nu, y = type1err, colour = factor(p))) +
     geom_line() + geom_point() +
-    geom_hline(yintercept = 0.05, colour="darkblue", linetype="dashed") +
-    ggtitle(title_D1) +
-    theme(axis.text.x=element_text(angle = 0, hjust = 0, vjust=0.5), legend.position = 'bottom')+
-    labs(x=TeX("Degrees of freedom ($\\nu$)"),
-         y= TeX('Rejection proportion at level $\\alpha=0.05$'),
-         colour='p',
-         subtitle = sublist[link])+
+    geom_hline(yintercept = 0.05, colour = "darkblue", linetype = "dashed") +
+    facet_grid(method ~ dep,
+               labeller = labeller(dep    = as_labeller(dep_labels, label_parsed),
+                                   method = as_labeller(method_labels))) +
+    theme(axis.text.x = element_text(angle = 0, hjust = 0, vjust = 0.5), legend.position = 'bottom') +
+    labs(x      = TeX("Degrees of freedom ($\\nu$)"),
+         y      = TeX('Rejection proportion at level $\\alpha=0.05$'),
+         colour = 'p') +
     scale_x_reverse()
 
 

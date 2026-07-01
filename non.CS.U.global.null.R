@@ -1,8 +1,7 @@
 ### Null distribution of p-values under the global null,
 ### for U \notin CS(n) matrices satisfying Remarks A.1, A.2 and A.3.
-
 # This code reproduces the numerical analysis of Section D.1 for known Sigma,
-# presented in Fig. D.1.
+# producing Figure D.1 and Figure G.4.
 
 # Install PCIdep
 #devtools::install_github("https://github.com/gonzalez-delgado/PCIdep")
@@ -116,6 +115,9 @@ dd <-'D4' # Dependence setting
 linkage <- 'av' # Clustering algorithm: one in 'av','cen','sin','com' or 'km'
 data_plot <- eval(parse(text = paste0('data_', dd)))
 
+# For Figure D.1, set linkage = 'av' and dd = 'D4', 'D5' or 'D6' to produce each panel.
+# For Figure G.4, set linkage = 'cen','sin','com' or 'km' and dd = 'D4', 'D5' or 'D6' to produce each panel.
+
 theme_set(theme_bw())
 ggplot(data_plot, aes(x = eval(parse(text = paste0('pv_', linkage))), col = factor(p)))+
   stat_ecdf()+
@@ -125,13 +127,3 @@ ggplot(data_plot, aes(x = eval(parse(text = paste0('pv_', linkage))), col = fact
   theme(legend.position = 'bottom')+
   theme(text = element_text(size = 14))
 
-# Produce figures
-
-# HAC average linkage
-ggpubr::ggarrange(p_D4_av, p_D5_av, p_D6_av, labels = c('(a)', '(b)',' (c)'), ncol = 3, common.legend = TRUE, legend = 'bottom')
-
-# Rest of clustering algorithms
-ggpubr::ggarrange(p_D4_cen, p_D5_cen, p_D6_cen, labels = c('(a)', '(b)',' (c)'), ncol = 3, common.legend = TRUE, legend = 'bottom')
-ggpubr::ggarrange(p_D4_sin, p_D5_sin, p_D6_sin, labels = c('(d)', '(e)',' (f)'), ncol = 3, common.legend = TRUE, legend = 'bottom')
-ggpubr::ggarrange(p_D4_com, p_D5_com, p_D6_com, labels = c('(g)', '(h)',' (i)'), ncol = 3, common.legend = TRUE, legend = 'bottom')
-ggpubr::ggarrange(p_D4_km, p_D5_km, p_D6_km, labels = c('(j)', '(k)',' (l)'), ncol = 3, common.legend = TRUE, legend = 'bottom')

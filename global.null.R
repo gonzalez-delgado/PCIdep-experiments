@@ -1,9 +1,11 @@
 ### Distribution of p-values under the global null hypothesis
-# This code reproduces the numerical analysis of Section 4.1.
+# This code reproduces the numerical analysis of Section 4.1,
+# producing Figures 3 and G.2.
 
 # Install PCIdep
 #devtools::install_github("https://github.com/gonzalez-delgado/PCIdep")
 rm(list=ls())
+
 # Required libraries
 library(PCIdep)
 library(matrixNormal)
@@ -101,6 +103,9 @@ sublist['av'] <- 'HAC average linkage'; sublist['cen'] <- 'HAC centroid linkage'
 
 dd <- 'D1' # Set dependence setting
 linkage <- 'av' # Set clustering algorithm: 'av','cen','sin','com' or 'km'
+
+# Setting linkage = 'av' produces Figure 3.
+# Setting linkage = 'cen','sin','com' or 'km' produces Figure G.2.
 
 theme_set(theme_bw())
 ggplot(eval(parse(text = paste0('data_', dd))), aes(x = eval(parse(text = paste0('pv_', linkage))), col = factor(p)))+
