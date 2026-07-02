@@ -1,5 +1,6 @@
 # PCIdep-experiments
 [![SWH](https://archive.softwareheritage.org/badge/origin/https://github.com/gonzalez-delgado/PCIdep-experiments/)](https://archive.softwareheritage.org/browse/origin/?origin_url=https://github.com/gonzalez-delgado/PCIdep-experiments)
+
 This code reproduces the numerical analyses and real data experiment in "Post-clustering Inference under Dependence", González-Delgado, Deronzier, Cortés and Neuvial 2023, [arxiv:2310.11822](https://arxiv.org/abs/2310.11822). Analyses make use of the $\texttt{R}$ package [PCIdep](https://github.com/gonzalez-delgado/PCIdep). This repository is organized as follows:
 
 * The file [figure.1.R](https://github.com/gonzalez-delgado/PCIdep-experiments/blob/main/figure.1.R) reproduces the first numerical analysis described in the introduction of the paper, generating Figure 1.
